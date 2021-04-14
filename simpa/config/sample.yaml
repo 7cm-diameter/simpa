@@ -15,6 +15,7 @@ Experimental:
   trial:          120               # Number of trials per session
   lick:           7                 # Arduino pin to detect input
   us:             12                # Arduino pin to present US
+  cam-id:         0                 # camera index
 
 Metadata:
   subject:        "enter-subject-name"

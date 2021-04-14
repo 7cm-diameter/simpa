@@ -1,11 +1,14 @@
-from amas.agent import NotWorkingError
+import cv2
+from amas.agent import Agent, NotWorkingError
 from comprex.agent import ABEND, NEND, OBSERVER, RECORDER, START, Stimulator
 from comprex.audio import Speaker, Tone
 from comprex.scheduler import TrialIterator, uniform_intervals
 from comprex.util import timestamp
 from pino.config import Experimental
+from pino.ino import HIGH, LOW, PinState
 
 INO1_ID = 100
+FILMTAKER = "FILMTAKER"
 
 
 async def stimulate(agent: Stimulator, expvars: Experimental) -> None:
@@ -43,12 +46,69 @@ async def stimulate(agent: Stimulator, expvars: Experimental) -> None:
                 await agent.sleep(trace_interval)
                 agent.send_to(RECORDER, timestamp(cs_off))
                 agent.send_to(RECORDER, timestamp(us_on))
+                agent.send_to(FILMTAKER, HIGH)
                 await agent.high_for(us, us_duration)
                 agent.send_to(RECORDER, timestamp(us_off))
+                agent.send_to(FILMTAKER, LOW)
             agent.send_to(OBSERVER, NEND)
             agent.finish()
     except NotWorkingError:
         agent.send_to(OBSERVER, ABEND)
+    return None
+
+
+class FilmTaker(Agent):
+    def __init__(self, addr: str):
+        super().__init__(addr)
+        self._led = LOW
+
+    @property
+    def led(self) -> PinState:
+        return self._led
+
+
+async def film(agent: FilmTaker, camid: int, filename: str):
+    cap = cv2.VideoCapture(camid)
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+    height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    video = cv2.VideoWriter(filename, fourcc, fps, (width, height))
+
+    try:
+        while agent.working():
+            await agent.sleep(0.025)
+
+            ret, frame = cap.read()
+            if not ret:
+                continue
+
+            if agent.led == HIGH:
+                cv2.circle(frame, (10, 10), 10, (0, 0, 255), thickness=-1)
+
+            cv2.imshow(f"Camera: {camid}", frame)
+            video.write(frame)
+            if cv2.waitKey(1) % 0xFF == ord("q"):
+                break
+
+        agent.send_to(OBSERVER, NEND)
+        agent.finish()
+    except NotWorkingError:
+        agent.send_to(OBSERVER, ABEND)
+
+    cap.release()
+    video.release()
+    cv2.destroyAllWindows()
+    return None
+
+
+async def check_pin_state(agent: FilmTaker):
+    try:
+        while agent.working():
+            _, mess = await agent.recv()
+            agent._led = mess
+    except NotWorkingError:
+        pass
     return None
 
 
@@ -73,24 +133,38 @@ if __name__ == '__main__':
 
     ino = Arduino(com)
     ino.apply_pinmode_settings(config.pinmode)
+    camid = config.experimental.get("cam-id", 0)
 
     data_dir = join(get_current_file_abspath(__file__), "data")
     if not exists(data_dir):
         mkdir(data_dir)
     filename = join(data_dir, namefile(config.metadata))
+    videoname = join(data_dir, namefile(config.metadata, extension="mp4"))
 
     stimulator = Stimulator(ino=ino) \
         .assign_task(stimulate, expvars=config.experimental) \
         .assign_task(_self_terminate)
+
     reader = Reader(ino=ino)
+
     recorder = Recorder(filename=filename)
+
+    filmtaker = FilmTaker(FILMTAKER) \
+        .assign_task(film, camid=camid, filename=videoname) \
+        .assign_task(check_pin_state) \
+        .assign_task(_self_terminate)
+
     observer = Observer()
-    agents = [stimulator, reader, recorder, observer]
+
+    agents = [stimulator, reader, recorder, observer, filmtaker]
     register = Register(agents)
-    env = Environment(agents)
+    env_exp = Environment(agents[0:-1])
+    env_cam = Environment([agents[-1]])
 
     try:
-        env.run()
+        env_cam.parallelize()
+        env_exp.run()
+        env_cam.join()
     except KeyboardInterrupt:
         observer.send_all(ABEND)
         observer.finish()
