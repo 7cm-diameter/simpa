@@ -43,7 +43,8 @@ async def stimulate(agent: Stimulator, expvars: Experimental) -> None:
                 await agent.sleep(interval)
                 agent.send_to(RECORDER, timestamp(cs_on))
                 await agent.call_async(speaker.play, tone)
-                await agent.sleep(trace_interval)
+                if trace_interval > 0:
+                    await agent.sleep(trace_interval)
                 agent.send_to(RECORDER, timestamp(cs_off))
                 agent.send_to(RECORDER, timestamp(us_on))
                 agent.send_to(FILMTAKER, HIGH)
@@ -69,6 +70,8 @@ class FilmTaker(Agent):
 
 async def film(agent: FilmTaker, camid: int, filename: str):
     cap = cv2.VideoCapture(camid)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 400)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 400)
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -77,7 +80,8 @@ async def film(agent: FilmTaker, camid: int, filename: str):
 
     try:
         while agent.working():
-            await agent.sleep(0.025)
+            await agent.sleep(0.01)
+            print(f"{timestamp(None)}")
 
             ret, frame = cap.read()
             if not ret:
