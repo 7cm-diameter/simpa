@@ -43,7 +43,9 @@ async def stimulate(agent: Stimulator, expvars: Experimental) -> None:
                 await agent.sleep(interval)
                 agent.send_to(RECORDER, timestamp(cs_on))
                 agent.send_to(FILMTAKER, HIGH)
-                await agent.call_async(speaker.play, tone)
+                # await agent.call_async(speaker.play, tone)
+                speaker.play(tone, False)
+                await agent.sleep(cs_duration)
                 agent.send_to(FILMTAKER, LOW)
                 if trace_interval > 0:
                     await agent.sleep(trace_interval)
@@ -52,11 +54,11 @@ async def stimulate(agent: Stimulator, expvars: Experimental) -> None:
                 await agent.high_for(us, us_duration)
                 agent.send_to(RECORDER, timestamp(us_off))
             agent.send_to(OBSERVER, NEND)
-            agent.send_to(RECORDER, NEND)
+            agent.send_to(RECORDER, timestamp(NEND))
             agent.finish()
     except NotWorkingError:
         agent.send_to(OBSERVER, ABEND)
-        agent.send_to(RECORDER, ABEND)
+        agent.send_to(RECORDER, timestamp(ABEND))
     return None
 
 
@@ -174,8 +176,8 @@ if __name__ == '__main__':
 
     agents = [stimulator, reader, recorder, observer, filmtaker]
     register = Register(agents)
-    env_exp = Environment([stimulator, reader, recorder, observer])
-    env_cam = Environment([filmtaker])
+    env_exp = Environment([stimulator, observer])
+    env_cam = Environment([filmtaker, reader, recorder])
 
     try:
         env_cam.parallelize()
