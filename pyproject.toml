@@ -11,6 +11,7 @@ amas = {git = "https://github.com/7cm-diameter/amas", branch = "main"}
 comprex = {git = "https://github.com/7cm-diameter/comprex", branch = "main"}
 pandas = "^1.2.4"
 scikit-image = "^0.18.1"
+opencv-python = "^4.5.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
