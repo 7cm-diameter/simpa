@@ -1,34 +1,5 @@
 library(tidyverse)
-
-get_metedata_from_filename <- function(filename) {
-  metadata_elements <- unlist(str_split(basename(filename), pattern = "_"))
-  subject <- metadata_elements[1]
-  condition <- metadata_elements[2]
-  date <- parse_date_into_int(metadata_elements[3])
-  return(c(subject = subject, condition = condition, date = date))
-}
-
-parse_date_into_int <- function(date, year = T, month = T, day = T,
-                                hour = F, min = F) {
-  date_elements <- unlist(str_split(date, pattern = "-"))
-  elements_used <- c(year, month, day, hour, min)
-  parsed_date <- as.character()
-  for (i in seq_len(length(elements_used))) {
-    if (elements_used[i]) {
-      parsed_date <- paste0(parsed_date, date_elements[i])
-    }
-  }
-  return(parsed_date)
-}
-
-add_metadata_to_df <- function(data, filename) {
-  metadata <- get_metedata_from_filename(filename)
-  n <- nrow(data)
-  metadf <- data.frame(subject = rep(metadata["subject"], n),
-                       condition = rep(metadata["condition"], n),
-                       date = rep(metadata["date"], n))
-  return(cbind(metadf, data))
-}
+library(comprexr)
 
 min_max_normarize <- function(x) {
   return((x - min(x)) / (max(x) - min(x)))
