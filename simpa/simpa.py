@@ -166,7 +166,7 @@ if __name__ == '__main__':
 
     recorder = Recorder(filename=filename)
 
-    rec = config.experimental.get("video-recording")
+    rec = bool(config.experimental.get("video-recording"))
     filmtaker = FilmTaker(FILMTAKER) \
         .assign_task(film, camid=camid, filename=videoname, rec=rec) \
         .assign_task(check_pin_state) \
