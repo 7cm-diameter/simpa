@@ -9,9 +9,9 @@ Experimental:
   amplifer:       1.0               # Sound volume (no unit)
   speaker:        0                 # Speaker index to use (integer)
   us-duration:    0.05              # Duration of US-presentation (sec)
-  mean-iti:       19.0              # Mean inter-trial interval
-  trace-interval: 1.0               # The interval between CS offset and US onset
-  range-iti:      5.0               # Range of ITI (`mean-iti` +/- `range_iti`)
+  mean-iti:       5.0               # Mean inter-trial interval
+  trace-interval: 0.0               # The interval between CS offset and US onset
+  range-iti:      0.0               # Range of ITI (`mean-iti` +/- `range_iti`)
   trial:          120               # Number of trials per session
   lick:           7                 # Arduino pin to detect input
   us:             12                # Arduino pin to present US
