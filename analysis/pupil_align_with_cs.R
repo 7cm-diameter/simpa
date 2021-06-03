@@ -8,18 +8,21 @@ min_max_normarize <- function(x) {
 ### Constatnt
 FPS <- 30 # per sec
 TIMEWINDOW <- 2 # sec
-CSDURATION <- 1
+CSDURATION <- 1 # sec
+USONSET <- 112
 
-pupil_paths <- list.files("./data/area", full.names = T)
+### Read and merge data
+pupil_paths <- list.files("./data/area", full.names = T) %>% sort
 
-merged_data <- pupil_paths %>%
+merged_pupils <- pupil_paths %>%
   lapply(., function(path) {
     d <- path %>% read.csv
     add_metadata_to_df(d, path)
 }) %>%
   do.call(rbind, .)
 
-rasterized_with_cs_onset <- merged_data %>%
+### Align with CS onset
+rasterized_with_cs_onset <- merged_pupils %>%
   split(., list(.$date, .$subject, .$condition), drop = T) %>%
   lapply(., function(d) {
     d$index <- seq_len(nrow(d))
