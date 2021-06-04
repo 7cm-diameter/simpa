@@ -21,7 +21,7 @@ merged_pupils <- pupil_paths %>%
 }) %>%
   do.call(rbind, .)
 
-### Align with CS onset
+### data preprocessing
 rasterized_with_cs_onset <- merged_pupils %>%
   split(., list(.$date, .$subject, .$condition), drop = T) %>%
   lapply(., function(d) {
@@ -66,9 +66,15 @@ pupil_dynamics_around_cs_norm <- pupil_dynamics_around_cs %>%
 }) %>%
   do.call(rbind, .) 
 
+# show pupil dynamics around cs
 ggplot(data = pupil_dynamics_around_cs_norm) +
   geom_line(aes(x = index / 30, y = pupil.area.med)) +
   geom_rect(aes(xmin = 0, xmax = FPS * 1 / 30,
                 ymin = min(pupil.area.med), ymax = max(pupil.area.med)),
             fill = "orange", alpha = 0.005, color = "transparent") +
   facet_grid(~subject~date)
+
+# save processed data
+write.csv(pupil_dynamics_around_cs_norm,
+          "./data/pltdata/pupil_around_cs.csv",
+          row.names = F)
