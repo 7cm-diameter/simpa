@@ -35,7 +35,7 @@ is_converged <- function(stanfit) {
 show_estimates <- function(fittable, state_seq) {
   states <- c("bout-initiation", "within-bout")
   state_seq <- states[state_seq]
-  data.frame(t = cumsum(fittable$y),
+  data.frame(time = cumsum(fittable$y),
              IRTs = fittable$y,
              state = state_seq) %>%
     ggplot() +
@@ -43,13 +43,9 @@ show_estimates <- function(fittable, state_seq) {
 }
 
 to_saved_format <- function(fittable, state_seq) {
-  data.frame(t = cumsum(fittable$y),
+  data.frame(time = cumsum(fittable$y),
              IRTs = fittable$y,
              state = state_seq)
-}
-
-get_filestem <- function(filename) {
-  basename(filename) %>% strsplit(., "\\.") %>% (function(spl) unlist(spl)[1])
 }
 
 append_to_filestem <- function(filename, s, sep = "-") {
@@ -60,6 +56,13 @@ append_to_filestem <- function(filename, s, sep = "-") {
   return(paste(stem_new, extension, sep = "."))
 }
 
+extract_fr2lr <- function(data) {
+  us_onsets <- data %>% filter(event == 112) %>% (function(d) d$time)
+  first <- min(us_onsets)
+  last <- max(us_onsets)
+  data %>% filter(first <= time & time <= last)
+}
+
 # estimate bout-and-pause patterns
 
 SAVE_DIR <- "./data/bouts"
@@ -67,15 +70,15 @@ filepaths <- list.files("./data/events", full.names = T)
 
 results <- filepaths %>%
   lapply(., function(path) {
-    data <- read.csv(path)
+    data <- read.csv(path) %>% extract_fr2lr
     fittable_data <- to_fittable_data(data, 2)
     model <- cmdstan_model("./analysis/hmm.stan")
 
     fitted <- fit_mcmc(model, fittable_data,
                        parallel_chains = 4,
                        chains = 4,
-                       iter_warmup = 1000,
-                       iter_sampling = 1000)
+                       iter_warmup = 500,
+                       iter_sampling = 500)
 
     stanfit <- read_stan_csv(fitted$output_files())
     convergence <- is_converged(stanfit)
