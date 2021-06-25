@@ -26,6 +26,7 @@ DLCKey = Tuple[Model, Bodyparts, Coordinate]
 
 
 def fit_ellipse(points: NDArray[2, float]) -> EllipseParmas:
+    points = points[~np.isnan(points).any(axis=1), :]
     m = EllipseModel()
     m.estimate(points)
     return tuple(m.params)
@@ -79,26 +80,34 @@ def is_marked(frame: NDArray, position: Tuple[int, int],
     return 1
 
 
+def to_video_path(h5path: Path) -> str:
+    stem = h5path.stem.split("DLC")[0]
+    return str(h5path.parents[1].joinpath("videos").joinpath(stem)) + ".MP4"
+
+
 if __name__ == '__main__':
-    from os import listdir
-    from os.path import abspath
-    CREATE_VIDEO = True
-    DRAW_ELLISPSE = True
-    SHOW_VIDEO = True
+    from argparse import ArgumentParser
 
-    videos = sorted(listdir("./data/videos"))
-    h5s = sorted(listdir("./data/pupil"))
+    parser = ArgumentParser()
+    parser.add_argument("-f", "--files", nargs="+", required=True)
+    parser.add_argument("-o", "--output", default=False)
+    parser.add_argument("-s", "--show", default=True)
 
-    for video, h5 in zip(videos, h5s):
+    args = parser.parse_args()
+
+    create_video = args.output
+    show_video = args.show
+    h5s = args.files
+
+    for h5 in h5s:
+        video = to_video_path(Path(h5))
         print(f"start processing {video}")
-        video = "./data/videos/" + video
-        h5 = "./data/pupil/" + h5
 
         tracked_data = pd.read_hdf(h5)
-        cap = cv2.VideoCapture(video)
+        cap = cv2.VideoCapture(str(video))
         nframe = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-        if CREATE_VIDEO:
+        if create_video:
             fourcc = cv2.VideoWriter_fourcc(*"mp4v")
             width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
             height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -130,21 +139,21 @@ if __name__ == '__main__':
 
             results.append((pupil_area, eyelid_area, pupil_x, pupil_y, cs_on))
 
-            if DRAW_ELLISPSE:
+            if show_video:
                 draw_ellipse(frame, pupil_params, (255, 0, 0), 1)
                 draw_ellipse(frame, eyelid_params, (0, 255, 0), 1)
 
-            if CREATE_VIDEO:
+            if create_video:
                 writer.write(frame)
 
-            if SHOW_VIDEO:
+            if show_video:
                 cv2.imshow("video", frame)
                 if cv2.waitKey(1) % 0xFF == ord("q"):
                     cv2.destroyAllWindows()
                     cap.release()
                     break
 
-        if CREATE_VIDEO:
+        if create_video:
             writer.release()
         output = pd.DataFrame(
             results,
