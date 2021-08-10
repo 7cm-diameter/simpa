@@ -178,7 +178,7 @@ if __name__ == '__main__':
 
     stimulator = Stimulator(ino=ino) \
         .assign_task(reward, expvars=config.experimental) \
-        .assign_task(sound, expvars=Experimental) \
+        .assign_task(sound, expvars=config.experimental) \
         .assign_task(_self_terminate)
 
     reader = Reader(ino=ino)
