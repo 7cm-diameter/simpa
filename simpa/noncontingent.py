@@ -128,7 +128,6 @@ async def film(agent: FilmTaker, camid: int, filename: str, rec: bool):
     except NotWorkingError:
         agent.send_to(OBSERVER, ABEND)
         agent.send_to(RECORDER, timestamp(ABEND))
-        agent.finish()
 
     cap.release()
     if rec:
