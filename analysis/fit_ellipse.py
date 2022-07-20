@@ -108,7 +108,7 @@ if __name__ == '__main__':
         nframe = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
         if create_video:
-            fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+            fourcc = cv2.VideoWriter_fourcc(*"MP4v")
             width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
             height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
             fps = cap.get(cv2.CAP_PROP_FPS)
@@ -117,10 +117,8 @@ if __name__ == '__main__':
                 (width, height))
 
         pupil_keys = extract_key_of_bodyparts(tracked_data, "pupil")
-        eyelid_keys = extract_key_of_bodyparts(tracked_data, "eyelid")
 
         pupil_data = reshape2fittable(tracked_data[pupil_keys])
-        eyelid_data = reshape2fittable(tracked_data[eyelid_keys])
 
         results: List[Tuple[Area, Area, XCenter, YCenter, CS]] = []
         for i in range(nframe):
@@ -130,18 +128,16 @@ if __name__ == '__main__':
             ret, frame = cap.read()
 
             pupil_params = fit_ellipse(pupil_data[i])
-            eyelid_params = fit_ellipse(eyelid_data[i])
 
             pupil_area = calc_ellipse_area(pupil_params)
-            eyelid_area = calc_ellipse_area(eyelid_params)
             pupil_x, pupil_y, _, _, _ = pupil_params
             cs_on = is_marked(frame, (10, 10), ((0, 0, 235), (20, 20, 255)))
 
-            results.append((pupil_area, eyelid_area, pupil_x, pupil_y, cs_on))
+            results.append((pupil_area, pupil_x, pupil_y, cs_on))
 
             if show_video:
-                draw_ellipse(frame, pupil_params, (255, 0, 0), 1)
-                draw_ellipse(frame, eyelid_params, (0, 255, 0), 1)
+                draw_ellipse(frame, pupil_params, (0, 255, 255), 1)
+                # draw_ellipse(frame, eyelid_params, (0, 255, 0), 1)
 
             if create_video:
                 writer.write(frame)
@@ -156,7 +152,6 @@ if __name__ == '__main__':
         if create_video:
             writer.release()
         output = pd.DataFrame(
-            results,
-            columns=["pupil-area", "eye-area", "pupil-x", "pupil-y", "cs"])
+            results, columns=["pupil-area", "pupil-x", "pupil-y", "cs"])
         output_path = as_output_filename(Path(video))
         output.to_csv(output_path, index=False)
