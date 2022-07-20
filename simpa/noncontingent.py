@@ -69,8 +69,7 @@ async def sound(agent: Agent, expvars: Experimental):
                 await agent.sleep(interval)
                 agent.send_to(RECORDER, timestamp(cs_on))
                 agent.send_to(FILMTAKER, HIGH)
-                speaker.play(tone, False)
-                await agent.sleep(cs_duration)
+                speaker.play(tone, True)
                 agent.send_to(FILMTAKER, LOW)
                 agent.send_to(RECORDER, timestamp(cs_off))
             break
