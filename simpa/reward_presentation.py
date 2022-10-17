@@ -1,3 +1,5 @@
+from typing import List
+
 import cv2
 from amas.agent import Agent, NotWorkingError
 from comprex.agent import ABEND, NEND, OBSERVER, RECORDER, START, Stimulator
