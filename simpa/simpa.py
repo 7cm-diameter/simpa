@@ -1,21 +1,21 @@
 import cv2
 from amas.agent import Agent, NotWorkingError
 from comprex.agent import ABEND, NEND, OBSERVER, RECORDER, START, Stimulator
-from comprex.audio import Speaker, Tone
-from comprex.scheduler import TrialIterator, uniform_intervals
+from comprex.audio import Speaker, PureTone
+from comprex.scheduler import TrialIterator, unif_rng
 from comprex.util import timestamp
-from pino.config import Experimental
+from pino.config import ExperimentalSetting
 from pino.ino import HIGH, LOW, PinState
 
 INO1_ID = 100
 FILMTAKER = "FILMTAKER"
 
 
-async def stimulate(agent: Stimulator, expvars: Experimental) -> None:
+async def stimulate(agent: Stimulator, expvars: ExperimentalSetting) -> None:
     speaker = Speaker(expvars.get("speaker", 0))
     cs_duration = expvars.get("cs-duration", 1.0)
     freq = expvars.get("frequency", 6000)
-    tone = Tone(freq, cs_duration)
+    tone = PureTone(freq, cs_duration)
 
     cs = int(freq)
     us = expvars.get("us", 12)
@@ -31,7 +31,7 @@ async def stimulate(agent: Stimulator, expvars: Experimental) -> None:
     trace_interval = expvars.get("trace-interval", 1.)
     mean_iti = expvars.get("mean-iti", 20.0) - (cs_duration + trace_interval)
     range_iti = expvars.get("range-iti", 5.0)
-    intervals = uniform_intervals(mean_iti, range_iti, trial)
+    intervals = unif_rng(mean_iti, range_iti, trial)
 
     trials = TrialIterator(list(range(trial)), intervals)
 
