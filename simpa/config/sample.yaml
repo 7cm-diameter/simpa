@@ -1,26 +1,27 @@
 Comport:
-  port:           "/dev/ttyACM0"    # `linux`: `/dev/ttyACMx` / `windows`: `COMx` (x: int)
-  baudrate:       115200            # available baudrates are 300, 1200, 2400, 9600, 14400, 19200, 38400, 57600, 115200
-  warmup:         2.0               # sec (should not be changed.)
+  port:            "/dev/ttyACM0"    # `linux`: `/dev/ttyACMx` / `windows`: `COMx` (x: int)
+  baudrate:        115200            # available baudrates are 300, 1200, 2400, 9600, 14400, 19200, 38400, 57600, 115200
+  warmup:          2.0               # sec (should not be changed.)
 
 Experimental:
-  cs-duration:    1.0               # Duration of CS-presentation (sec)
-  frequency:      6000              # Frequency of sound (Hz)
-  amplifer:       1.0               # Sound volume (no unit)
-  speaker:        0                 # Speaker index to use (integer)
-  us-duration:    0.05              # Duration of US-presentation (sec)
-  mean-iti:       19.0              # Mean inter-trial interval
-  trace-interval: 1.0               # The interval between CS offset and US onset
-  range-iti:      5.0               # Range of ITI (`mean-iti` +/- `range_iti`)
-  trial:          120               # Number of trials per session
-  lick:           7                 # Arduino pin to detect input
-  us:             12                # Arduino pin to present US
-  cam-id:         0                 # camera index
+  cs-duration:     1.0               # Duration of CS-presentation (sec)
+  frequency:       6000              # Frequency of sound (Hz)
+  amplifer:        1.0               # Sound volume (no unit)
+  speaker:         0                 # Speaker index to use (integer)
+  us-duration:     0.05              # Duration of US-presentation (sec)
+  mean-iti:        19.0              # Mean inter-trial interval
+  trace-interval:  1.0               # The interval between CS offset and US onset
+  range-iti:       5.0               # Range of ITI (`mean-iti` +/- `range_iti`)
+  trial:           120               # Number of trials per session
+  lick:            7                 # Arduino pin to detect input
+  us:              12                # Arduino pin to present US
+  cam-id:          0                 # camera index
+  video-recording: False             # Whether to record video or not (True or False)
 
 Metadata:
-  subject:        "enter-subject-name"
-  condition:      "enter-experimental-condition"
+  subject:         "enter-subject-name"
+  condition:       "enter-experimental-condition"
 
 PinMode:
-  12:             "OUTPUT"
-  7:              "SSINPUT_PULLUP"
+  12:              "OUTPUT"
+  7:               "SSINPUT_PULLUP"
